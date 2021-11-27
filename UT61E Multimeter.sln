@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UT61E_Multimeter", "UT61E_Multimeter\UT61E_Multimeter.csproj", "{DC6F45A3-104C-4605-B28C-49EEC68A293C}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "UT61E_Installer", "UT61E_Installer\UT61E_Installer.vdproj", "{47AE2DC3-51EB-4346-AF4D-3D7BB8B48628}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DC6F45A3-104C-4605-B28C-49EEC68A293C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC6F45A3-104C-4605-B28C-49EEC68A293C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC6F45A3-104C-4605-B28C-49EEC68A293C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC6F45A3-104C-4605-B28C-49EEC68A293C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47AE2DC3-51EB-4346-AF4D-3D7BB8B48628}.Debug|Any CPU.ActiveCfg = Debug
+		{47AE2DC3-51EB-4346-AF4D-3D7BB8B48628}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D8A743B5-F463-4022-A120-7BA65A708D5B}
+	EndGlobalSection
+EndGlobal
