@@ -331,6 +331,9 @@ namespace UT61E_Multimeter
             if (line.Length == 12)
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(line);
+                for (int test = 0; test < bytes.Length; test++)
+                    if ((bytes[test] & 0b01100000) != 0b01100000)
+                        return DataState.BAD;
                 display1.Range = bytes[0] & 7;
                 display1.Digits = "";
                 display1.Digits += Convert.ToChar((bytes[1] & 0x0F) + 0x30);
