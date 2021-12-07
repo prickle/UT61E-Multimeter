@@ -15,9 +15,13 @@ namespace UT61E_Multimeter
         private Font boldFont;
         private Font bigFont;
 
-        private enum ModeType { n = 0, v = 1, o = 2, f = 3, h = 4, u = 5, m = 6, a = 7, d = 8, c = 9, t = 10 };
+        //ModeType index enum 
+        private enum ModeType { none = 0, volts = 1, ohms = 2, farad = 3, hertz = 4, uamp = 5, mamp = 6, amps = 7, diode = 8, cont = 9, temp = 10 };
 
-        private ModeType[] modeTable = { ModeType.a, ModeType.d, ModeType.h, ModeType.o, ModeType.t, ModeType.c, ModeType.f, ModeType.n, ModeType.n, ModeType.n, ModeType.n, ModeType.v, ModeType.n, ModeType.u, ModeType.n, ModeType.m };
+        //Mode from meter mapped to ModeType
+        private ModeType[] modeTable = { ModeType.amps, ModeType.diode, ModeType.hertz, ModeType.ohms, ModeType.temp, ModeType.cont, ModeType.farad, ModeType.none, ModeType.none, ModeType.none, ModeType.none, ModeType.volts, ModeType.none, ModeType.uamp, ModeType.none, ModeType.mamp };
+
+        //Decimal place table [range, (int)ModeIndex]
         private int[,] dpTable = {
             { -1, 0, 2, 1, 2, 2, 1, 1, 2, 0, 2 },
             { -1, 1, 0, 2, 3, 3, 2, 0, 2, 0, 2 },
@@ -29,8 +33,10 @@ namespace UT61E_Multimeter
             { -1, 0, 0, 2, 2, 0, 0, 0, 2, 0, 2 }
         };
 
+        //Displayable units/multipliers
         enum MulType { n, v, mv, r, kr, mr, f, nf, uf, mf, h, kh, mh, a, ua, ma, p };
 
+        //Unit/multiplier type table [range, (int)ModeIndex]
         private MulType[,] mulTable = {
             { MulType.n, MulType.v, MulType.r, MulType.nf, MulType.h, MulType.ua, MulType.ma, MulType.a, MulType.p, MulType.v, MulType.r },
             { MulType.n, MulType.v, MulType.kr, MulType.nf, MulType.h, MulType.ua, MulType.ma, MulType.n, MulType.p, MulType.v, MulType.r  },
@@ -42,6 +48,7 @@ namespace UT61E_Multimeter
             { MulType.n, MulType.n, MulType.n, MulType.mf, MulType.mh, MulType.n, MulType.n, MulType.n, MulType.p, MulType.v, MulType.r  }
         };
 
+        //Setters
         public int Range { get; set; }
         public string Digits { get; set; }
         public int Mode { get; set; }
@@ -128,8 +135,8 @@ namespace UT61E_Multimeter
 
             //Sort out the mode and range
             ModeType modeIndex = modeTable[Mode];
-            if (Freq) modeIndex = ModeType.h;               //Frequency mode select
-            int dp = dpTable[Range, (int)modeIndex] + (Pct ? 1 : 0);
+            if (Freq) modeIndex = ModeType.hertz;               //Frequency mode select
+            int dp = dpTable[Range, (int)modeIndex] + (modeTable[Mode] != ModeType.volts && Pct ? 1 : 0);
             int barVal = 0;             //Bargraph value
             int leadingZeros = 0;       //Number of leading zeros to strip
             int digitStart = 45;        //X-Coord of digits where to start drawing
@@ -175,7 +182,7 @@ namespace UT61E_Multimeter
             //Draw bargraph
             for (int n = 0; n < 45; n++)
             {
-                Brush col = n <= barVal || Ol ? fg : bg;
+                Brush col = modeIndex != ModeType.hertz && modeIndex != ModeType.farad && (n <= barVal || Ol) ? fg : bg;
                 int x = 25 + (n * 8);
                 if (n % 10 != 0)
                 {
@@ -185,7 +192,7 @@ namespace UT61E_Multimeter
                 else
                 {
                     e.Graphics.FillRectangle(col, new Rectangle(x, 145, 4, 15));
-                    e.Graphics.DrawString((n / 2).ToString(), boldFont, fg, x - 5 - (n / 2 > 9 ? 5 : 0), 165);
+                    e.Graphics.DrawString((n / 2).ToString(), boldFont, modeIndex != ModeType.hertz && modeIndex != ModeType.farad ? fg : bg, x - 5 - (n / 2 > 9 ? 5 : 0), 165);
                 }
             }
 
@@ -195,19 +202,19 @@ namespace UT61E_Multimeter
             e.Graphics.DrawString("OL", boldFont, Ol ? fg : bg, 394, 144);
             e.Graphics.DrawString("μ", bigFont, mul == MulType.ua ? fg : bg, 346, 4);
             e.Graphics.DrawString("m", bigFont, mul == MulType.ma || mul == MulType.mv ? fg : bg, 360, 4);
-            e.Graphics.DrawString("V", bigFont, modeIndex == ModeType.v ? fg : bg, 380, 4);
-            e.Graphics.DrawString("A", bigFont, modeIndex == ModeType.a || modeIndex == ModeType.u || modeIndex == ModeType.m? fg : bg, 396, 4);
+            e.Graphics.DrawString("V", bigFont, modeIndex == ModeType.volts ? fg : bg, 380, 4);
+            e.Graphics.DrawString("A", bigFont, modeIndex == ModeType.amps || modeIndex == ModeType.uamp || modeIndex == ModeType.mamp? fg : bg, 396, 4);
             e.Graphics.DrawString("C", bigFont, bg, 360, 24);
             e.Graphics.DrawString("F", bigFont, bg, 378, 24);
-            e.Graphics.DrawString("%", bigFont, modeIndex == ModeType.h && Pct ? fg : bg, 393, 24);
+            e.Graphics.DrawString("%", bigFont, modeIndex == ModeType.hertz && Pct ? fg : bg, 393, 24);
             e.Graphics.DrawString("M", bigFont, mul == MulType.mr || mul == MulType.mh ? fg : bg, 360, 44);
             e.Graphics.DrawString("k", bigFont, mul == MulType.kr || mul == MulType.kh ? fg : bg, 380, 44);
-            e.Graphics.DrawString("Ω", bigFont, modeIndex == ModeType.o ? fg : bg, 393, 44);
-            e.Graphics.DrawString("Hz", bigFont, (modeIndex == ModeType.h || Freq) && !Pct ? fg : bg, 382, 64);
+            e.Graphics.DrawString("Ω", bigFont, modeIndex == ModeType.ohms ? fg : bg, 393, 44);
+            e.Graphics.DrawString("Hz", bigFont, (modeIndex == ModeType.hertz || Freq) && !Pct ? fg : bg, 382, 64);
             e.Graphics.DrawString("m", bigFont, mul == MulType.mf ? fg : bg, 350, 84);
             e.Graphics.DrawString("μ", bigFont, mul == MulType.uf ? fg : bg, 370, 84);
             e.Graphics.DrawString("n", bigFont, mul == MulType.nf ? fg : bg, 384, 84);
-            e.Graphics.DrawString("F", bigFont, modeIndex == ModeType.f ? fg : bg, 398, 84);
+            e.Graphics.DrawString("F", bigFont, modeIndex == ModeType.farad ? fg : bg, 398, 84);
             e.Graphics.DrawString("MIN", boldFont, Min ? fg : bg, 356, 112);
             e.Graphics.DrawString("MAX", boldFont, Max ? fg : bg, 383, 112);
             e.Graphics.DrawString("Pmin", boldFont, Pmin ? fg : bg, 344, 126);
@@ -219,8 +226,8 @@ namespace UT61E_Multimeter
             picBatt.Image = Lowbatt ? Properties.Resources.batt : Properties.Resources.lbatt;
             picHold.Image = Hold ? Properties.Resources.hold : Properties.Resources.lhold;
             //picEF.Image = ef ? Properties.Resources.lhold : Properties.Resources.hold;
-            picDiode.Image = modeIndex == ModeType.d ? Properties.Resources.diode : Properties.Resources.ldiode;
-            picBeep.Image = modeIndex == ModeType.c ? Properties.Resources.beeper : Properties.Resources.lbeeper;
+            picDiode.Image = modeIndex == ModeType.diode ? Properties.Resources.diode : Properties.Resources.ldiode;
+            picBeep.Image = modeIndex == ModeType.cont ? Properties.Resources.beeper : Properties.Resources.lbeeper;
             picDelta.Image = Delta ? Properties.Resources.delta : Properties.Resources.ldelta;
             bg.Dispose();
             fg.Dispose();

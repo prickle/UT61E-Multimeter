@@ -233,6 +233,8 @@ namespace UT61E_Multimeter
                 }
             }
         }
+
+        
         /*
         Protocol:
         
@@ -332,7 +334,7 @@ namespace UT61E_Multimeter
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(line);
                 for (int test = 0; test < bytes.Length; test++)
-                    if ((bytes[test] & 0b01100000) != 0b01100000)
+                    if ((bytes[test] & 0b00110000) != 0b00110000)
                         return DataState.BAD;
                 display1.Range = bytes[0] & 7;
                 display1.Digits = "";
