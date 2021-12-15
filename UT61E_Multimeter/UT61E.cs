@@ -16,7 +16,8 @@ namespace UT61E_Multimeter
         static SerialPort serial;
 
         //Incoming data buffer
-        StringBuilder msg;
+        //StringBuilder msg;
+        List<byte> msg;
 
         //Count of serial com ports
         int portCount;
@@ -31,10 +32,6 @@ namespace UT61E_Multimeter
         enum DataState { NONE, OK, BAD };
         DataState serialState = DataState.NONE;
 
-        //Data received callback
-        //delegate void SetReceivedCallback(object sender, SerialDataReceivedEventArgs e);
-        //SetReceivedCallback call_DataReceived;
-
         public UT61E()
         {
             InitializeComponent();
@@ -47,9 +44,8 @@ namespace UT61E_Multimeter
         {
             // Create a new SerialPort object with default settings.  
             serial = new SerialPort();
-            msg = new StringBuilder();
+            msg = new List<byte>();
             portDescriptions = new List<string>();
-            //call_DataReceived = new SetReceivedCallback(Serial_DataReceived);
             ScanPorts();
         }
 
@@ -177,10 +173,9 @@ namespace UT61E_Multimeter
             Properties.Settings.Default.Port = cbxPorts.Text;
             portOpen = true;
             RecieveData();
-
-            //serial.DataReceived += Serial_DataReceived;
         }
 
+        //https://www.sparxeng.com/blog/software/must-use-net-system-io-ports-serialport
         private void RecieveData()
         {
             Action kickoffRead = null;
@@ -226,6 +221,27 @@ namespace UT61E_Multimeter
 
         private void raiseAppSerialDataEvent(byte[] received)
         {
+            //Add received data to buffer
+            msg.AddRange(received);
+            
+            //Look for linefeed, '\n'
+            if (msg.Contains(10))       
+            {
+                //Extract line
+                int pos = msg.IndexOf(10);
+                byte[] line = msg.GetRange(0, pos - 1).ToArray();
+                //Trim buffer
+                msg.RemoveRange(0, pos + 1);
+                //Parse and check result
+                DataState res = Parse(line);
+                if (res != serialState)
+                {
+                    serialState = res;
+                    if (serialState == DataState.OK) statusLbl.Text = "Connected OK";
+                    else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
+                }
+            }
+            /*
             string input = Encoding.ASCII.GetString(received);
             //Append to buffer
             msg.Append(input);
@@ -245,6 +261,7 @@ namespace UT61E_Multimeter
                     else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
                 }
             }
+            */
         }
 
 /*        private void Serial_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -396,11 +413,10 @@ namespace UT61E_Multimeter
         */
 
         //Parse a UT61E Serial packet
-        private DataState Parse(string line)
+        private DataState Parse(byte[] bytes)
         {
-            if (line.Length == 12)
+            if (bytes.Length == 12)
             {
-                byte[] bytes = Encoding.ASCII.GetBytes(line);
                 for (int test = 0; test < bytes.Length; test++)
                     if ((bytes[test] & 0b00110000) != 0b00110000)
                         return DataState.BAD;
