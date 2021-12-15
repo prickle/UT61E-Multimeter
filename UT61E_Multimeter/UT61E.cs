@@ -25,6 +25,9 @@ namespace UT61E_Multimeter
         //If we think the serial port is open
         bool portOpen = false;
 
+        //First line of data will be mangled
+        bool firstLine = false;
+
         //Descriptions of serial com ports
         List<string> portDescriptions;
 
@@ -172,6 +175,7 @@ namespace UT61E_Multimeter
             //Set to go
             Properties.Settings.Default.Port = cbxPorts.Text;
             portOpen = true;
+            firstLine = true;
             RecieveData();
         }
 
@@ -260,8 +264,9 @@ namespace UT61E_Multimeter
                 {
                     serialState = res;
                     if (serialState == DataState.OK) statusLbl.Text = "Connected OK";
-                    else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
+                    else if (serialState == DataState.BAD && !firstLine) statusLbl.Text = "Connected, Bad Data!";
                 }
+                firstLine = false;
             }
         }
 
