@@ -109,10 +109,10 @@ namespace UT61E_Multimeter
         //Close the serial port and tidy up
         void ClosePort()
         {
+            portOpen = false;
             serial.Close();
             statusLbl.Text = "Not Connected";
             btnConnect.Text = "Connect";
-            portOpen = false;
             serialState = DataState.NONE;
             display1.Reset();
         }
@@ -192,7 +192,7 @@ namespace UT61E_Multimeter
                             Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
                             raiseAppSerialDataEvent(received);
                         }
-                        catch (IOException exc)
+                        catch (Exception exc)
                         {
                             handleAppSerialError(exc);
                         }
@@ -203,20 +203,42 @@ namespace UT61E_Multimeter
             kickoffRead();
         }
 
-        private void handleAppSerialError(IOException ex)
+        private void handleAppSerialError(Exception ex)
         {
-            if (ex.GetType() == typeof(ArgumentException))
-                statusLbl.Text = "Not a COM Port";
-            else if (ex.GetType() == typeof(UnauthorizedAccessException))
-                statusLbl.Text = "Unauthorized";
-            else if (ex.GetType() == typeof(ArgumentOutOfRangeException))
-                statusLbl.Text = "Out Of Range";
-            else if (ex.GetType() == typeof(IOException))
-                statusLbl.Text = "IO Exception";
-            else if (ex.GetType() == typeof(InvalidOperationException))
-                statusLbl.Text = "Port Not Open";
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            if (InvokeRequired)
+            {
+                //Call back into function from UI Thread
+                try
+                {
+                    MethodInvoker del = delegate
+                    {
+                        handleAppSerialError(ex);
+                    };
+                    this.Invoke(del);
+                }
+                // ..unless the UI has been closed.
+                catch (InvalidOperationException) { if (this.IsHandleCreated) throw; }
+            }
             else
-                statusLbl.Text = "Unknown Error?";
+            {
+                if (ex.GetType() == typeof(ArgumentException))
+                    statusLbl.Text = "Not a COM Port";
+                else if (ex.GetType() == typeof(UnauthorizedAccessException))
+                    statusLbl.Text = "Unauthorized";
+                else if (ex.GetType() == typeof(ArgumentOutOfRangeException))
+                    statusLbl.Text = "Out Of Range";
+                else if (ex.GetType() == typeof(IOException))
+                    statusLbl.Text = "IO Exception";
+                else if (ex.GetType() == typeof(InvalidOperationException))
+                {
+                    if (portOpen) statusLbl.Text = "Port Not Open";
+                }
+                else
+                    statusLbl.Text = "Unknown Error?";
+            }
         }
 
         private void raiseAppSerialDataEvent(byte[] received)
@@ -241,84 +263,8 @@ namespace UT61E_Multimeter
                     else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
                 }
             }
-            /*
-            string input = Encoding.ASCII.GetString(received);
-            //Append to buffer
-            msg.Append(input);
-            //Got full line?
-            if (msg.ToString().Contains('\n'))
-            {
-                int pos = msg.ToString().IndexOf('\n');
-                string line = msg.ToString().Substring(0, pos).Trim();
-                //Trim buffer
-                msg.Remove(0, pos + 1);
-                //Parse and check result
-                DataState res = Parse(line);
-                if (res != serialState)
-                {
-                    serialState = res;
-                    if (serialState == DataState.OK) statusLbl.Text = "Connected OK";
-                    else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
-                }
-            }
-            */
         }
 
-/*        private void Serial_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            // InvokeRequired required compares the thread ID of the
-            // calling thread to the thread ID of the creating thread.
-            // If these threads are different, it returns true.
-            if (InvokeRequired)
-            {
-                //Call back into function from UI Thread
-                try { this.Invoke(call_DataReceived, new object[] { sender, e }); }
-                // ..unless the UI has been closed.
-                catch (InvalidOperationException) { if (this.IsHandleCreated) throw; }
-            }
-            else
-            {
-                //Read existing data
-                SerialPort sp = (SerialPort)sender;
-                string input;
-                try { input = sp.ReadExisting(); }
-                catch (Exception ex)
-                {
-                    if (ex.GetType() == typeof(ArgumentException))
-                        statusLbl.Text = "Not a COM Port";
-                    else if (ex.GetType() == typeof(UnauthorizedAccessException))
-                        statusLbl.Text = "Unauthorized";
-                    else if (ex.GetType() == typeof(ArgumentOutOfRangeException))
-                        statusLbl.Text = "Out Of Range";
-                    else if (ex.GetType() == typeof(IOException))
-                        statusLbl.Text = "IO Exception";
-                    else if (ex.GetType() == typeof(InvalidOperationException))
-                        statusLbl.Text = "Port Not Open";
-                    else
-                        statusLbl.Text = "Unknown Error?";
-                    return;
-                }
-                //Append to buffer
-                msg.Append(input);
-                //Got full line?
-                if (msg.ToString().Contains('\n'))
-                {
-                    int pos = msg.ToString().IndexOf('\n');
-                    string line = msg.ToString().Substring(0, pos).Trim();
-                    //Trim buffer
-                    msg.Remove(0, pos + 1);
-                    //Parse and check result
-                    DataState res = Parse(line);
-                    if (res != serialState)
-                    {
-                        serialState = res;
-                        if (serialState == DataState.OK) statusLbl.Text = "Connected OK";
-                        else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
-                    }
-                }
-            }
-        }
-*/
         
         /*
         Protocol:
