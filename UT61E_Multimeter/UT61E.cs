@@ -32,8 +32,8 @@ namespace UT61E_Multimeter
         DataState serialState = DataState.NONE;
 
         //Data received callback
-        delegate void SetReceivedCallback(object sender, SerialDataReceivedEventArgs e);
-        SetReceivedCallback call_DataReceived;
+        //delegate void SetReceivedCallback(object sender, SerialDataReceivedEventArgs e);
+        //SetReceivedCallback call_DataReceived;
 
         public UT61E()
         {
@@ -49,7 +49,7 @@ namespace UT61E_Multimeter
             serial = new SerialPort();
             msg = new StringBuilder();
             portDescriptions = new List<string>();
-            call_DataReceived = new SetReceivedCallback(Serial_DataReceived);
+            //call_DataReceived = new SetReceivedCallback(Serial_DataReceived);
             ScanPorts();
         }
 
@@ -176,10 +176,78 @@ namespace UT61E_Multimeter
             //Set to go
             Properties.Settings.Default.Port = cbxPorts.Text;
             portOpen = true;
-            serial.DataReceived += Serial_DataReceived;
+            RecieveData();
+
+            //serial.DataReceived += Serial_DataReceived;
         }
 
-        private void Serial_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void RecieveData()
+        {
+            Action kickoffRead = null;
+            kickoffRead = delegate {
+                if (serial.IsOpen)
+                {
+                    var buffer = new byte[4096];
+                    serial.BaseStream.BeginRead(buffer, 0, buffer.Length, delegate (IAsyncResult ar)
+                    {
+                        try
+                        {
+                            int actualLength = serial.BaseStream.EndRead(ar);
+                            byte[] received = new byte[actualLength];
+                            Buffer.BlockCopy(buffer, 0, received, 0, actualLength);
+                            raiseAppSerialDataEvent(received);
+                        }
+                        catch (IOException exc)
+                        {
+                            handleAppSerialError(exc);
+                        }
+                        kickoffRead();
+                    }, null);
+                }
+            };
+            kickoffRead();
+        }
+
+        private void handleAppSerialError(IOException ex)
+        {
+            if (ex.GetType() == typeof(ArgumentException))
+                statusLbl.Text = "Not a COM Port";
+            else if (ex.GetType() == typeof(UnauthorizedAccessException))
+                statusLbl.Text = "Unauthorized";
+            else if (ex.GetType() == typeof(ArgumentOutOfRangeException))
+                statusLbl.Text = "Out Of Range";
+            else if (ex.GetType() == typeof(IOException))
+                statusLbl.Text = "IO Exception";
+            else if (ex.GetType() == typeof(InvalidOperationException))
+                statusLbl.Text = "Port Not Open";
+            else
+                statusLbl.Text = "Unknown Error?";
+        }
+
+        private void raiseAppSerialDataEvent(byte[] received)
+        {
+            string input = Encoding.ASCII.GetString(received);
+            //Append to buffer
+            msg.Append(input);
+            //Got full line?
+            if (msg.ToString().Contains('\n'))
+            {
+                int pos = msg.ToString().IndexOf('\n');
+                string line = msg.ToString().Substring(0, pos).Trim();
+                //Trim buffer
+                msg.Remove(0, pos + 1);
+                //Parse and check result
+                DataState res = Parse(line);
+                if (res != serialState)
+                {
+                    serialState = res;
+                    if (serialState == DataState.OK) statusLbl.Text = "Connected OK";
+                    else if (serialState == DataState.BAD) statusLbl.Text = "Connected, Bad Data!";
+                }
+            }
+        }
+
+/*        private void Serial_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
@@ -233,7 +301,7 @@ namespace UT61E_Multimeter
                 }
             }
         }
-
+*/
         
         /*
         Protocol:

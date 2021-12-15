@@ -136,7 +136,8 @@ namespace UT61E_Multimeter
             //Sort out the mode and range
             ModeType modeIndex = modeTable[Mode];
             if (Freq) modeIndex = ModeType.hertz;               //Frequency mode select
-            int dp = dpTable[Range, (int)modeIndex] + (modeTable[Mode] != ModeType.volts && Pct ? 1 : 0);
+            int dp = dpTable[Range, (int)modeIndex]             //Base dp position
+                + (modeTable[Mode] != ModeType.volts && Pct ? 1 : 0); //Duty cycle(%) needs dp adjustment..
             int barVal = 0;             //Bargraph value
             int leadingZeros = 0;       //Number of leading zeros to strip
             int digitStart = 45;        //X-Coord of digits where to start drawing

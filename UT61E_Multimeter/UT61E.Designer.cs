@@ -51,9 +51,9 @@
             this.cbxPorts,
             this.statusLbl,
             this.toolStripSeparator1});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 183);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 182);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(425, 30);
+            this.toolStrip1.Size = new System.Drawing.Size(425, 31);
             this.toolStrip1.Stretch = true;
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
@@ -67,7 +67,7 @@
             this.btnConnect.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnConnect.Margin = new System.Windows.Forms.Padding(0, 1, 0, 1);
             this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(87, 28);
+            this.btnConnect.Size = new System.Drawing.Size(87, 29);
             this.btnConnect.Text = "Connect";
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
@@ -77,21 +77,21 @@
             this.cbxPorts.FlatStyle = System.Windows.Forms.FlatStyle.Standard;
             this.cbxPorts.Margin = new System.Windows.Forms.Padding(1);
             this.cbxPorts.Name = "cbxPorts";
-            this.cbxPorts.Size = new System.Drawing.Size(100, 28);
+            this.cbxPorts.Size = new System.Drawing.Size(100, 29);
             this.cbxPorts.DropDown += new System.EventHandler(this.cbxPorts_DropDown);
             // 
             // statusLbl
             // 
             this.statusLbl.AutoToolTip = true;
             this.statusLbl.Name = "statusLbl";
-            this.statusLbl.Size = new System.Drawing.Size(109, 27);
+            this.statusLbl.Size = new System.Drawing.Size(109, 28);
             this.statusLbl.Text = "Not Connected";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 30);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 31);
             // 
             // timer1
             // 
@@ -121,7 +121,7 @@
             this.display1.Pmax = false;
             this.display1.Pmin = false;
             this.display1.Range = 0;
-            this.display1.Size = new System.Drawing.Size(425, 183);
+            this.display1.Size = new System.Drawing.Size(425, 182);
             this.display1.TabIndex = 4;
             this.display1.Ul = false;
             // 
